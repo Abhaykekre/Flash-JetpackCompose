@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,10 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flash.data.DataSource
@@ -30,7 +33,7 @@ import com.example.flash.data.DataSource
 @Composable
 fun StartScreen(
     flashViewModel: FlashViewModel,
-    onCategoryClicked : (String) -> Unit
+    onCategoryClicked : (Int) -> Unit
 ) {
     val context = LocalContext.current
     val flashUiState by flashViewModel.uiState.collectAsState()
@@ -60,28 +63,31 @@ fun Category(
     stringResourceId: Int,
     imageResourceId: Int,
     flashViewModel: FlashViewModel,
-    onCategoryClicked: (String) -> Unit
+    onCategoryClicked: (Int) -> Unit
 ) {
     val categoryName = stringResource(id = stringResourceId)
     Card(modifier = Modifier.clickable {
         flashViewModel.updateClickText("This was Clicked")
         Toast.makeText(context, "This card was clicked", Toast.LENGTH_SHORT).show()
-        onCategoryClicked(categoryName)
+        onCategoryClicked(stringResourceId)
     }) {
         Column(
-            modifier = Modifier.padding(5.dp)
+            modifier = Modifier.padding(5.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = categoryName,
                 fontSize = 17.sp,
-                modifier = Modifier.width(150.dp)
+                modifier = Modifier.width(150.dp),
+                textAlign = TextAlign.Center
+            )
+            Image(
+                painter = painterResource(id = imageResourceId),
+                contentDescription = "",
+                modifier = Modifier.size(150.dp)
             )
         }
-        Image(
-            painter = painterResource(id = imageResourceId),
-            contentDescription = "",
-            modifier = Modifier.size(150.dp)
-        )
+
     }
 }
 

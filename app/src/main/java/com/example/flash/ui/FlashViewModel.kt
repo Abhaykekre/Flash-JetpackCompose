@@ -18,7 +18,7 @@ class FlashViewModel: ViewModel() {
         }
     }
 
-    fun updateSelectedCategory(updateCategory:String){
+    fun updateSelectedCategory(updateCategory: Int){
         _uiState.update {
             it.copy(
                 selectedCategory = updateCategory

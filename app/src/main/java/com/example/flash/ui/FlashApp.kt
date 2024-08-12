@@ -21,6 +21,7 @@ fun FlashApp(
             StartScreen(flashViewModel = flashViewModel, onCategoryClicked = {
                 flashViewModel.updateSelectedCategory(it)
                 navController.navigate(FlashAppScreen.Items.name)
+
             })
         }
         composable(route = FlashAppScreen.Items.name) {
