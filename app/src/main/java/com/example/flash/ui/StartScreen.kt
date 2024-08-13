@@ -2,7 +2,6 @@ package com.example.flash.ui
 
 import android.content.Context
 import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +32,7 @@ import com.example.flash.data.DataSource
 @Composable
 fun StartScreen(
     flashViewModel: FlashViewModel,
-    onCategoryClicked : (Int) -> Unit
+    onCategoryClicked: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val flashUiState by flashViewModel.uiState.collectAsState()
@@ -66,13 +65,16 @@ fun Category(
     onCategoryClicked: (Int) -> Unit
 ) {
     val categoryName = stringResource(id = stringResourceId)
-    Card(modifier = Modifier.clickable {
-        flashViewModel.updateClickText("This was Clicked")
-        Toast.makeText(context, "This card was clicked", Toast.LENGTH_SHORT).show()
-        onCategoryClicked(stringResourceId)
-    }) {
+    Card(
+        modifier = Modifier.clickable {
+            flashViewModel.updateClickText("This was Clicked")
+            Toast.makeText(context, "This card was clicked", Toast.LENGTH_SHORT).show()
+            onCategoryClicked(stringResourceId)
+        }) {
         Column(
-            modifier = Modifier.padding(5.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(5.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
