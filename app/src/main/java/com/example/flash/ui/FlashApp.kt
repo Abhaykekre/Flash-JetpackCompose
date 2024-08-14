@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,56 +47,64 @@ fun FlashApp(
     flashViewModel: FlashViewModel = viewModel(),
     navController: NavHostController = rememberNavController(),
 ) {
-
+    val isVisible by flashViewModel.isVisible.collectAsState()
     val backScreenEntry by navController.currentBackStackEntryAsState()
     val currentScreen = FlashAppScreen.valueOf(
         backScreenEntry?.destination?.route ?: FlashAppScreen.Start.name
     )
     canNavigateBack = navController.previousBackStackEntry != null
-    Scaffold(
-        topBar = {
-            TopAppBar(title = {
-                Text(
-                    text = currentScreen.title,
-                    fontSize = 26.sp,
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Gray
-                )
-            }, navigationIcon = {
-                if (canNavigateBack) {
-                    IconButton(onClick = {
-                        navController.navigateUp()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back Button"
-                        )
+
+    if (isVisible) {
+        OfferScreen()
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(title = {
+                    Text(
+                        text = currentScreen.title,
+                        fontSize = 26.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Gray
+                    )
+                }, navigationIcon = {
+                    if (canNavigateBack) {
+                        IconButton(onClick = {
+                            navController.navigateUp()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back Button"
+                            )
+                        }
                     }
                 }
-            }
-            )
-        },
-        bottomBar = {
-            FlashAppBar(navController = navController)
-        },
-    ) {
-        NavHost(
-            navController = navController,
-            startDestination = FlashAppScreen.Start.name,
-            Modifier.padding(it)
+                )
+            },
+            bottomBar = {
+                FlashAppBar(navController = navController)
+            },
         ) {
-            composable(route = FlashAppScreen.Start.name) {
-                StartScreen(flashViewModel = flashViewModel, onCategoryClicked = {
-                    flashViewModel.updateSelectedCategory(it)
-                    navController.navigate(FlashAppScreen.Items.name)
+            NavHost(
+                navController = navController,
+                startDestination = FlashAppScreen.Start.name,
+                Modifier.padding(it)
+            ) {
+                composable(route = FlashAppScreen.Start.name) {
+                    StartScreen(flashViewModel = flashViewModel, onCategoryClicked = {
+                        flashViewModel.updateSelectedCategory(it)
+                        navController.navigate(FlashAppScreen.Items.name)
 
-                })
-            }
-            composable(route = FlashAppScreen.Items.name) {
-                ItemScreen(flashViewModel = flashViewModel)
-            }
+                    })
+                }
+                composable(route = FlashAppScreen.Items.name) {
+                    InternetItemsScreen(
+                        flashViewModel = flashViewModel,
+                        itemUiState = flashViewModel.itemUiState
+                    )
+                }
 
+            }
         }
     }
 }
@@ -115,9 +124,9 @@ fun FlashAppBar(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.clickable {
-                 navController.navigate(FlashAppScreen.Start.name) {
-                     popUpTo(0)
-                 }
+                navController.navigate(FlashAppScreen.Start.name) {
+                    popUpTo(0)
+                }
             }
         ) {
             Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")

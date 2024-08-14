@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flash.R
 import com.example.flash.data.DataSource
 
 
@@ -43,17 +45,38 @@ fun ItemScreen(flashViewModel: FlashViewModel) {
         verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-       items(DataSource.loadItems(
-           flashUiState.selectedCategory
-       )){
-          ItemCard(
-              stringResourceId = it.stringResourceId,
-              imageResourceId = it.imageResourceId,
-              itemQuantity = it.itemQuantityId,
-              itemPrice = it.itemPrice
-          )
-       }
+        items(
+            DataSource.loadItems(
+                flashUiState.selectedCategory
+            )
+        ) {
+            ItemCard(
+                stringResourceId = it.stringResourceId,
+                imageResourceId = it.imageResourceId,
+                itemQuantity = it.itemQuantityId,
+                itemPrice = it.itemPrice
+            )
+        }
 
+    }
+}
+
+@Composable
+fun InternetItemsScreen(
+    flashViewModel: FlashViewModel, itemUiState: FlashViewModel.ItemUiState
+) {
+    when (itemUiState) {
+        is FlashViewModel.ItemUiState.Loading -> {
+            LoadingScreen()
+        }
+
+        is FlashViewModel.ItemUiState.Success -> {
+            Text(text = itemUiState.items.toString() )
+        }
+
+        else -> {
+            ErrorScreen()
+        }
     }
 }
 
@@ -146,8 +169,7 @@ fun ItemCard(
                     Toast
                         .makeText(context, "Added to Cart", Toast.LENGTH_SHORT)
                         .show()
-                },
-            colors = CardDefaults.cardColors(
+                }, colors = CardDefaults.cardColors(
                 containerColor = Color(108, 194, 111, 255)
             )
         ) {
@@ -167,5 +189,19 @@ fun ItemCard(
                     )
             }
         }
+    }
+}
+
+@Composable
+fun LoadingScreen() {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.loading), contentDescription = "loading")
+    }
+}
+
+@Composable
+fun ErrorScreen() {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.error), contentDescription = "loading")
     }
 }
