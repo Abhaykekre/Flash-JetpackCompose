@@ -26,13 +26,26 @@ class FlashViewModel : ViewModel() {
     var itemUiState: ItemUiState by mutableStateOf(ItemUiState.Loading)
         private set
 
+    private val _cardItems = MutableStateFlow<List<InternetItem>>(emptyList())
+    val cartItems: StateFlow<List<InternetItem>> get() = _cardItems.asStateFlow()
+
     lateinit var internetJob: Job
     lateinit var screenJob: Job
 
-   sealed interface ItemUiState {
+    sealed interface ItemUiState {
         data class Success(val items: List<InternetItem>) : ItemUiState
         object Loading : ItemUiState
         object Error : ItemUiState
+    }
+
+    fun addToCart(
+        item: InternetItem
+    ) {
+         _cardItems.value = _cardItems.value + item
+    }
+
+    fun removeFromCart(item: InternetItem) {
+         _cardItems.value = _cardItems.value - item
     }
 
     fun updateClickText(updatedText: String) {

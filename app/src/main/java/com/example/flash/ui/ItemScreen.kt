@@ -87,7 +87,8 @@ fun ItemScreen(
                 stringResourceId = it.itemName,
                 imageResourceId = it.imageUrl,
                 itemQuantity = it.itemQuantity,
-                itemPrice = it.itemPrice
+                itemPrice = it.itemPrice,
+                flashViewModel = flashViewModel,
             )
         }
 
@@ -115,7 +116,11 @@ fun InternetItemsScreen(
 
 @Composable
 fun ItemCard(
-    stringResourceId: String, imageResourceId: String, itemQuantity: String, itemPrice: Int
+    stringResourceId: String,
+    imageResourceId: String,
+    itemQuantity: String,
+    itemPrice: Int,
+    flashViewModel: FlashViewModel
 ) {
     val context = LocalContext.current
     Column(
@@ -203,6 +208,15 @@ fun ItemCard(
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
                 .clickable {
+                    flashViewModel.addToCart(
+                        InternetItem(
+                            itemName = stringResourceId,
+                            itemQuantity = itemQuantity,
+                            itemPrice = itemPrice,
+                            imageUrl = imageResourceId,
+                            itemCategory = ""
+                        )
+                    )
                     Toast
                         .makeText(context, "Added to Cart", Toast.LENGTH_SHORT)
                         .show()

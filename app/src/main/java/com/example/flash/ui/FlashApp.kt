@@ -104,7 +104,7 @@ fun FlashApp(
                     )
                 }
                 composable(route = FlashAppScreen.Cart.name) {
-                    CartScreen()
+                    CartScreen(flashViewModel=flashViewModel)
                 }
 
             }
