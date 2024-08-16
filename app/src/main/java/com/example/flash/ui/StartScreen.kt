@@ -12,21 +12,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flash.R
 import com.example.flash.data.DataSource
 
 @Composable
@@ -42,7 +47,29 @@ fun StartScreen(
         verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-
+        item (
+            span = { GridItemSpan(2) }
+        ) {
+            Column {
+                    Image(painter = painterResource(id = R.drawable.banner), contentDescription = "banner" )
+                    Card (
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(108,194,111,255)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp)
+                    ) {
+                         Text(
+                             text = "Shop by Category",
+                             fontSize = 20.sp,
+                             fontWeight = FontWeight.SemiBold,
+                             color = Color.White,
+                             modifier = Modifier.padding(horizontal = 10.dp)
+                         )
+                    }
+            }
+        }
         items(DataSource.loadCategories()) {
             Category(
                 context = context,
@@ -70,7 +97,11 @@ fun Category(
             flashViewModel.updateClickText("This was Clicked")
             Toast.makeText(context, "This card was clicked", Toast.LENGTH_SHORT).show()
             onCategoryClicked(stringResourceId)
-        }) {
+        },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(248, 221, 248, 255)
+        )
+    ) {
         Column(
             modifier = Modifier
                 .padding(5.dp)

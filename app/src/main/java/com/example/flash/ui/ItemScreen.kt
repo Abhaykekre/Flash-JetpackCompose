@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -28,32 +30,63 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.flash.R
-import com.example.flash.data.DataSource
+import com.example.flash.data.InternetItem
 
 
 @Composable
-fun ItemScreen(flashViewModel: FlashViewModel) {
+fun ItemScreen(
+    flashViewModel: FlashViewModel,
+    items: List<InternetItem>
+) {
     val flashUiState by flashViewModel.uiState.collectAsState()
+    val selectedCategory = stringResource(id = flashUiState.selectedCategory)
+    val database = items.filter {
+        it.itemCategory.lowercase() == selectedCategory.lowercase()
+    }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(150.dp),
         contentPadding = PaddingValues(10.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        items(
-            DataSource.loadItems(
-                flashUiState.selectedCategory
-            )
+        item(
+            span = { GridItemSpan(2) }
         ) {
+            Column {
+                Image(
+                    painter = painterResource(id = R.drawable.banner),
+                    contentDescription = "banner"
+                )
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(108, 194, 111, 255)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(3.dp)
+                ) {
+                    Text(
+                        text = "${stringResource(id = flashUiState.selectedCategory)} (${database.size})",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
+            }
+        }
+        items(database) {
             ItemCard(
-                stringResourceId = it.stringResourceId,
-                imageResourceId = it.imageResourceId,
-                itemQuantity = it.itemQuantityId,
+                stringResourceId = it.itemName,
+                imageResourceId = it.imageUrl,
+                itemQuantity = it.itemQuantity,
                 itemPrice = it.itemPrice
             )
         }
@@ -71,30 +104,34 @@ fun InternetItemsScreen(
         }
 
         is FlashViewModel.ItemUiState.Success -> {
-            Text(text = itemUiState.items.toString() )
+            ItemScreen(flashViewModel = flashViewModel, items = itemUiState.items)
         }
 
         else -> {
-            ErrorScreen()
+            ErrorScreen(flashViewModel=flashViewModel)
         }
     }
 }
 
 @Composable
 fun ItemCard(
-    stringResourceId: Int, imageResourceId: Int, itemQuantity: String, itemPrice: Int
+    stringResourceId: String, imageResourceId: String, itemQuantity: String, itemPrice: Int
 ) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.width(150.dp),
     ) {
-        Card() {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color(248, 221, 248, 255)
+            )
+        ) {
             Box {
-                Image(
-                    painter = painterResource(id = imageResourceId),
-                    contentDescription = "Item Name",
+                AsyncImage(
+                    model = imageResourceId,
+                    contentDescription = stringResourceId,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .height(110.dp)
                 )
                 Row(
@@ -121,7 +158,7 @@ fun ItemCard(
             }
         }
         Text(
-            text = stringResource(id = stringResourceId),
+            text = stringResourceId,
             fontSize = 12.sp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -200,8 +237,24 @@ fun LoadingScreen() {
 }
 
 @Composable
-fun ErrorScreen() {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+fun ErrorScreen(flashViewModel: FlashViewModel) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
         Image(painter = painterResource(id = R.drawable.error), contentDescription = "loading")
+        Text(
+            text = "Opps! Internet unavailable. Please check your connection or retry after turning your wifi or mobile data on.",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            textAlign = TextAlign.Center,
+        )
+        Button(onClick = {
+            flashViewModel.getFlashItems()
+        }) {
+            Text(text = "Retry")
+        }
     }
 }

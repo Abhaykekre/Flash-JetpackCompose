@@ -36,7 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 enum class FlashAppScreen(val title: String) {
-    Start("Welcome to FlashCart"), Items("Choose the items"), Cart("Shopping Cart"),
+    Start("FlashCart"), Items("Choose items"), Cart("Your Cart"),
 }
 
 var canNavigateBack = false
@@ -65,7 +65,7 @@ fun FlashApp(
                         fontSize = 26.sp,
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }, navigationIcon = {
                     if (canNavigateBack) {
@@ -78,11 +78,12 @@ fun FlashApp(
                             )
                         }
                     }
-                }
-                )
+                })
             },
             bottomBar = {
-                FlashAppBar(navController = navController)
+                FlashAppBar(
+                    navController = navController, currentScreen = currentScreen
+                )
             },
         ) {
             NavHost(
@@ -99,9 +100,11 @@ fun FlashApp(
                 }
                 composable(route = FlashAppScreen.Items.name) {
                     InternetItemsScreen(
-                        flashViewModel = flashViewModel,
-                        itemUiState = flashViewModel.itemUiState
+                        flashViewModel = flashViewModel, itemUiState = flashViewModel.itemUiState
                     )
+                }
+                composable(route = FlashAppScreen.Cart.name) {
+                    CartScreen()
                 }
 
             }
@@ -110,7 +113,7 @@ fun FlashApp(
 }
 
 @Composable
-fun FlashAppBar(navController: NavHostController) {
+fun FlashAppBar(navController: NavHostController, currentScreen: FlashAppScreen) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -120,28 +123,25 @@ fun FlashAppBar(navController: NavHostController) {
 
             )
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.clickable {
                 navController.navigate(FlashAppScreen.Start.name) {
                     popUpTo(0)
                 }
-            }
-        ) {
+            }) {
             Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
             Text(text = "Home", fontSize = 10.sp)
         }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.clickable {
-                navController.navigate(FlashAppScreen.Items.name) {
-                    popUpTo(0)
+                if (currentScreen != FlashAppScreen.Cart) {
+                    navController.navigate(FlashAppScreen.Cart.name) {
+                        popUpTo(0)
+                    }
                 }
-
-            }
-        ) {
+            }) {
             Icon(imageVector = Icons.Outlined.ShoppingCart, contentDescription = "Cart")
             Text(text = "Cart", fontSize = 10.sp)
         }
