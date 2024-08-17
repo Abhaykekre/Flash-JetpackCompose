@@ -7,6 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flash.data.InternetItem
 import com.example.flash.network.FlashApi
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,32 +26,157 @@ class FlashViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(FlashUiState())
     val uiState: StateFlow<FlashUiState> = _uiState.asStateFlow()
 
-    val _isVisible = MutableStateFlow<Boolean>(true)
+    private val _isVisible = MutableStateFlow(true)
     val isVisible = _isVisible
 
     var itemUiState: ItemUiState by mutableStateOf(ItemUiState.Loading)
         private set
 
+    private val _user = MutableStateFlow<FirebaseUser?>(null)
+    val user: MutableStateFlow<FirebaseUser?> get() = _user
+
+    private val _phoneNumber = MutableStateFlow("")
+    val phoneNumber: MutableStateFlow<String> get() = _phoneNumber
+
     private val _cardItems = MutableStateFlow<List<InternetItem>>(emptyList())
     val cartItems: StateFlow<List<InternetItem>> get() = _cardItems.asStateFlow()
 
-    lateinit var internetJob: Job
-    lateinit var screenJob: Job
+    private val _otp = MutableStateFlow("")
+    val otp: MutableStateFlow<String> get() = _otp
+
+    private val _verificationId = MutableStateFlow("")
+    val verificationId: MutableStateFlow<String> get() = _verificationId
+
+    private val _ticks = MutableStateFlow(60L)
+    val ticks: MutableStateFlow<Long> get() = _ticks
+
+    private val _loading = MutableStateFlow(false)
+    val loading: MutableStateFlow<Boolean> get() = _loading
+
+    private val _logoutClicked = MutableStateFlow(false)
+    val logoutClicked: MutableStateFlow<Boolean> get() = _logoutClicked
+
+    private lateinit var timerJob: Job
+
+    private val database = Firebase.database
+    private val myRef = database.getReference("user/${auth.currentUser?.uid}/cart")
+
+
+    private lateinit var internetJob: Job
+    private var screenJob: Job
 
     sealed interface ItemUiState {
         data class Success(val items: List<InternetItem>) : ItemUiState
-        object Loading : ItemUiState
-        object Error : ItemUiState
+        data object Loading : ItemUiState
+        data object Error : ItemUiState
     }
+
+    fun setPhoneNumber(phoneNumber: String) {
+        _phoneNumber.value = phoneNumber
+    }
+
+    fun setOtp(otp: String) {
+        _otp.value = otp
+    }
+
+    fun setVerificationId(verificationId: String) {
+        _verificationId.value = verificationId
+    }
+
+    fun setUser(user: FirebaseUser) {
+        _user.value = user
+    }
+
+    fun clearData() {
+        _user.value = null
+        _phoneNumber.value = ""
+        _otp.value = ""
+        verificationId.value = ""
+        resetTimer()
+    }
+
+    fun runTimer() {
+        timerJob = viewModelScope.launch {
+            while (_ticks.value > 0) {
+                delay(1000)
+                _ticks.value -= 1
+            }
+        }
+    }
+
+    fun resetTimer() {
+        try {
+            timerJob.cancel()
+        } catch (_: Exception) {
+        } finally {
+            _ticks.value = 60
+        }
+    }
+
+    fun setLoading(isLoading: Boolean) {
+        _loading.value = isLoading
+    }
+
+    fun setLogoutStatus(
+        logoutStatus: Boolean
+    ) {
+        _logoutClicked.value = logoutStatus
+    }
+
 
     fun addToCart(
         item: InternetItem
     ) {
-         _cardItems.value = _cardItems.value + item
+        _cardItems.value += item
+
     }
 
-    fun removeFromCart(item: InternetItem) {
-         _cardItems.value = _cardItems.value - item
+    fun addToDatabase(item: InternetItem) {
+        myRef.push().setValue(item)
+    }
+
+    private fun fillCartItems() {
+        // Read from the database
+        myRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                _cardItems.value = emptyList()
+                for (childSnapShot in dataSnapshot.children) {
+                    val item = childSnapShot.getValue(InternetItem::class.java)
+                    item?.let {
+                        val newItem = it
+                        addToCart(newItem)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
+    }
+
+    fun removeFromCart(olditem: InternetItem) {
+        myRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                for (childSnapShot in dataSnapshot.children) {
+                    var itemRemoved = false
+                    val item = childSnapShot.getValue(InternetItem::class.java)
+                    item?.let {
+                        if (olditem.itemName == it.itemName && olditem.itemPrice == it.itemPrice) {
+                            childSnapShot.ref.removeValue()
+                            itemRemoved = true
+                        }
+                    }
+                    if (itemRemoved) break
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        }
+        )
     }
 
     fun updateClickText(updatedText: String) {
@@ -64,7 +195,7 @@ class FlashViewModel : ViewModel() {
         }
     }
 
-    fun toggleVisibility() {
+    private fun toggleVisibility() {
         _isVisible.value = false
 
     }
@@ -74,6 +205,7 @@ class FlashViewModel : ViewModel() {
             try {
                 val listResult = FlashApi.retrofitService.getItems()
                 itemUiState = ItemUiState.Success(listResult)
+
             } catch (exception: Exception) {
                 itemUiState = ItemUiState.Error
                 toggleVisibility()
@@ -89,6 +221,7 @@ class FlashViewModel : ViewModel() {
             toggleVisibility()
         }
         getFlashItems()
+        fillCartItems()
     }
 
 }

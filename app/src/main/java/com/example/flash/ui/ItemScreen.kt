@@ -208,7 +208,7 @@ fun ItemCard(
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
                 .clickable {
-                    flashViewModel.addToCart(
+                    flashViewModel.addToDatabase(
                         InternetItem(
                             itemName = stringResourceId,
                             itemQuantity = itemQuantity,

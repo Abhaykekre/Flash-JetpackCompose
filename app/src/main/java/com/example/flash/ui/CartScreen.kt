@@ -7,14 +7,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,83 +37,115 @@ import com.example.flash.data.InternetItem
 import com.example.flash.data.InternetItemWithQuantity
 
 @Composable
-fun CartScreen(flashViewModel: FlashViewModel) {
+fun CartScreen(
+    flashViewModel: FlashViewModel,
+    onHomeButtonClicked: () -> Unit
+) {
 
     val cartItems by flashViewModel.cartItems.collectAsState()
-    val cartItemsWithQuantity = cartItems.groupBy { it }.map {
-        (item,cartItems) -> InternetItemWithQuantity(
+    val cartItemsWithQuantity = cartItems.groupBy { it }.map { (item, cartItems) ->
+        InternetItemWithQuantity(
             item,
             cartItems.size
         )
     }
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item {
-            Image(painter = painterResource(id = R.drawable.banner), contentDescription = "banner")
-        }
-        item {
-            Text(
-                text = "Review items",
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-            )
-        }
-        items(cartItemsWithQuantity) {
-            CartCard(it.item,flashViewModel,it.quantity)
-        }
-        item {
-            Text(
-                text = "Bill Details",
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
 
+
+    if (cartItems.isNotEmpty()) {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                Image(
+                    painter = painterResource(id = R.drawable.banner),
+                    contentDescription = "banner"
                 )
+            }
+            item {
+                Text(
+                    text = "Review items",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                )
+            }
+            items(cartItemsWithQuantity) {
+                CartCard(it.item, flashViewModel, it.quantity)
+            }
+            item {
+                Text(
+                    text = "Bill Details",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
 
-        }
+                    )
 
-        val totalPrice = cartItems.sumOf {
-            it.itemPrice * 75/100
-        }
-        val handlingCharge = totalPrice * 1 / 100
-        val deliveryFee = 30
-        val grandTotal = totalPrice + handlingCharge + deliveryFee
-        item {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(236, 236, 236, 255)
-                ), modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp)
+            }
+
+            val totalPrice = cartItems.sumOf {
+                it.itemPrice * 75 / 100
+            }
+            val handlingCharge = totalPrice * 1 / 100
+            val deliveryFee = 30
+            val grandTotal = totalPrice + handlingCharge + deliveryFee
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(236, 236, 236, 255)
+                    ), modifier = Modifier.fillMaxWidth()
                 ) {
-                    BillRow(
-                        itemName = "Item total",
-                        itemPrice = totalPrice,
-                        fontWeight = FontWeight.Normal
-                    )
-                    BillRow(
-                        itemName = "Handling Charge",
-                        itemPrice = handlingCharge,
-                        fontWeight = FontWeight.Light
-                    )
-                    BillRow(
-                        itemName = "Delivery Fee",
-                        itemPrice = deliveryFee,
-                        fontWeight = FontWeight.Normal
-                    )
-                    Divider(
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(vertical = 5.dp),
-                        color = Color.LightGray
-                    )
-                    BillRow(
-                        itemName = "To pay",
-                        itemPrice = grandTotal,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+                    Column(
+                        modifier = Modifier.padding(10.dp)
+                    ) {
+                        BillRow(
+                            itemName = "Item total",
+                            itemPrice = totalPrice,
+                            fontWeight = FontWeight.Normal
+                        )
+                        BillRow(
+                            itemName = "Handling Charge",
+                            itemPrice = handlingCharge,
+                            fontWeight = FontWeight.Light
+                        )
+                        BillRow(
+                            itemName = "Delivery Fee",
+                            itemPrice = deliveryFee,
+                            fontWeight = FontWeight.Normal
+                        )
+                        Divider(
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(vertical = 5.dp),
+                            color = Color.LightGray
+                        )
+                        BillRow(
+                            itemName = "To pay",
+                            itemPrice = grandTotal,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
                 }
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.delivery),
+                contentDescription = "",
+                modifier = Modifier.size(70.dp)
+            )
+            Text(
+                text = "You cart is empty",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(20.dp),
+                )
+            FilledTonalButton(onClick = {
+                onHomeButtonClicked()
+            }) {
+                Text(text = "Browse Products")
             }
         }
     }
@@ -118,7 +153,7 @@ fun CartScreen(flashViewModel: FlashViewModel) {
 
 @Composable
 fun CartCard(
-    cartItem : InternetItem,
+    cartItem: InternetItem,
     flashViewModel: FlashViewModel,
     cartItemQuantity: Int
 ) {
@@ -145,7 +180,7 @@ fun CartCard(
                 .weight(4f),
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Text(text = cartItem.itemName, fontSize = 20.sp, maxLines = 1)
+            Text(text = cartItem.itemName, fontSize = 16.sp, maxLines = 1)
             Text(text = cartItem.itemQuantity, fontSize = 14.sp, maxLines = 1)
         }
 
@@ -165,7 +200,10 @@ fun CartCard(
                 textDecoration = TextDecoration.LineThrough
             )
             Text(
-                text = "Rs. ${cartItem.itemPrice * 75/100}", fontSize = 18.sp, maxLines = 1, color = Color(254, 116, 105, 255)
+                text = "Rs. ${cartItem.itemPrice * 75 / 100}",
+                fontSize = 18.sp,
+                maxLines = 1,
+                color = Color(254, 116, 105, 255)
             )
         }
 
@@ -185,7 +223,7 @@ fun CartCard(
 
             Card(modifier = Modifier
                 .clickable {
-                    flashViewModel.removeFromCart(item = cartItem)
+                    flashViewModel.removeFromCart(olditem = cartItem)
                 }
                 .fillMaxWidth(), colors = CardDefaults.cardColors(
                 containerColor = Color(254, 116, 105, 255)
