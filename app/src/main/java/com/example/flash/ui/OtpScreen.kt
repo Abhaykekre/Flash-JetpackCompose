@@ -106,7 +106,7 @@ fun OtpTextBox(
                        else -> otp[index].toString()
                     }
 
-                  //  otp[index].toString()
+
                 Column(
                    horizontalAlignment = Alignment.CenterHorizontally ,
                     modifier = Modifier.padding(4.dp),
