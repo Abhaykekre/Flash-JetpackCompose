@@ -40,7 +40,6 @@ fun StartScreen(
     onCategoryClicked: (Int) -> Unit
 ) {
     val context = LocalContext.current
-    val flashUiState by flashViewModel.uiState.collectAsState()
     LazyVerticalGrid(
         columns = GridCells.Adaptive(128.dp),
         contentPadding = PaddingValues(10.dp),
